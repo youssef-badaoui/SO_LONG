@@ -8,17 +8,10 @@
 #include <stdlib.h>
 
 
-typedef struct s_var {
-	int	i;
-	int	j;
-	int	size1;
-	int	size2;
-	int	sizep;
-}	t_var;
 
 typedef struct s_map{
     char *map;
-    char **tab;
+    char *tab[1000];
     int w;
     int h;
     int player;
@@ -31,17 +24,26 @@ typedef struct s_map{
 }   t_map;
 
 typedef struct s_mlx{
+	void *mlx;
     int bpp;
 	int line;
 	int endian;
 	char *addr;
-	void *mlx;
     void *win;
     void *img;
     void *img2;
 	int x;
     int y;
 } t_mlx;
+typedef struct s_var {
+	int	i;
+	int	j;
+	int	size1;
+	int	size2;
+	int	sizep;
+}	t_var;
+
+
 
 typedef struct s_data 
 {

@@ -11,7 +11,7 @@
 /* ************************************************************************** */
 
 #include "so_long.h"
-
+#define BUFFER_SIZE 1
 int	the_end(char *str)
 {
 	int	i;
