@@ -2,14 +2,14 @@
 
 void    check(t_map *map, char *line)
 {
-	int i;
-	static int j;
+	int	i;
+	static int	j;
 
 	i = 0;
 	while(line[i] != 10 && line[i] != 0)
 	{
 		if(line[i] == 'C')
-			map -> colec++;
+			map->colec++;
 		else if(line[i] == 'E')
 			map->exit++;
 		else if(line[i] == 'P')
@@ -18,6 +18,8 @@ void    check(t_map *map, char *line)
 			map->px = i;
 			map->py = j;
 		}
+		else if(line[i] != '1' && line[i] != '0')
+			map->error = 1;
 		map->i++;
 		i++;
 	}
@@ -28,20 +30,26 @@ void lenmap (t_map *map_data)
 {
 	int fd;
 	char *line;
+	int i;
+
 	fd = open(map_data->map, O_RDWR);
-	printf("%d\n", fd);
 	if(fd < 1)
 		return;
+	i = 0;
+	while(map_data->map[i])
+		i++;
+	if(map_data->map[i-1] != 'r' ||map_data->map[i-2] != 'e' ||map_data->map[i-3] != 'b' ||map_data->map[i-4] != '.')
+		map_data->error = 1;
 	line = NULL;
 	while(1)
 	{
 		line = get_next_line(fd);
-		//printf("%s\n", line);
 		if(!line)
 			break;
-		check(map_data, line);
 		map_data->h++;
 		map_data->w = ft_strlen(line);
+		check(map_data, line);
+		free(line);
 	}
 	close(fd);
 }
@@ -51,7 +59,6 @@ void full_map(t_map *map)
 	int fd;
 	int k;
 	fd = open(map->map, O_RDWR);
-	printf("%d\n", fd);
 	if(fd < 1)
 		return;
 	k = 0;
@@ -66,12 +73,13 @@ void full_map(t_map *map)
 
 void draw(t_mlx *mlx, t_map *map)
 {
-	int i = 0;
-	int j = 0;
+	int i;
+	int j;
 	int x;
 	int y;
 
-	mlx_clear_window(mlx->mlx, mlx->win);
+	i = 0;
+	j = 0;
 	while(i < map->h)
 	{
 		if(map->tab[i][j] == '1')
@@ -85,7 +93,6 @@ void draw(t_mlx *mlx, t_map *map)
 		if(map->tab[i][j] != '0')
 			mlx_put_image_to_window(mlx->mlx, mlx->win, mlx->img, 20*j, 20*i);
 		j++;
-		//printf("%d    %d\n",i,j);
 		if(j == map->w)
 		{
 			j = 0;
@@ -117,7 +124,10 @@ void replace(t_data *data,int x, int y)
 	else if(data->mapp->tab[data->mapp->py + y][data->mapp->px + x] == 'E')
 		checkend(data, x, y);
 }
-
+int out(void)
+{
+	exit(1);
+}
 int hun(int keycode, t_data *data)
 {
 	int x;
@@ -133,8 +143,10 @@ int hun(int keycode, t_data *data)
 		y = 1;
 	else if(keycode == 126)
 		y = -1;
-	else if(keycode == 53)
+	else if(keycode == 53 || keycode == 17)
 		exit(0);
+	else
+		return 0;
 	replace(data, x, y);
 	return (0);
 }
@@ -152,30 +164,48 @@ void checkend(t_data *data,int x,int y)
 	}
 }
 
+int check_bord(t_map *map)
+{
+	int i;
+
+	i = 0;
+	while(i < map->h)
+	{
+		if(map->tab[i][0] != '1' || map->tab[i][map->w - 1] != '1')
+		{
+			// printf(" i = %d",i);
+			// printf("%d %d",map->tab[i][0] ,map->tab[i][map->w - 1]);
+			return (0);
+		}
+		i++;
+	}
+	i = 0;
+	while(i < map->w)
+	{
+		if(map->tab[0][i] != '1' || map->tab[map->h - 1][i] != '1')
+			return (0);
+		i++;
+	}
+	return (1);
+}
+
 int main(int ac,char **av)
 {
 	int i;
 	int j;
 	t_mlx mlx;
-	t_map map;
+	t_map map = {av[1], 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 	t_data data;
 	
 	i = 0;
 	j = 0;
-	map.map = av[1];
-	map.w = 0;
-	map.h = 0;
-	map.player = 0;
-	map.pm = 0;
-	map.exit = 0;
-	map.exit = 0;
-	map.colec = 0;
-	map.i = 0;
 	lenmap(&map);
 	full_map(&map);
-	if(map.h == map.w || map.player != 1 || map.colec < 1 || map.exit < 1 || map.h == map.w || map.h * map.w != map.i)
+	printf("%d\n", map.h);
+	printf("%d\n", map.w);
+	if( map.h == map.w || map.player != 1 || map.colec < 1 || map.exit < 1 || map.h * map.w != map.i || !check_bord(&map) || map.error)
 	{
-	    write(2, "error", 5);
+	    write(2, "error\nmap error!", 16);
 	    return 0;
 	}
 	mlx.mlx = mlx_init();
@@ -184,6 +214,7 @@ int main(int ac,char **av)
 	data.mlxx = &mlx;
 	draw(&mlx, &map);
 	mlx_hook(mlx.win, 02, 00, hun, &data);
+	mlx_hook(mlx.win, 17, 00, out, &data);
 	mlx_loop(mlx.mlx);
 	return (0);
 }

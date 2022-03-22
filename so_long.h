@@ -21,6 +21,7 @@ typedef struct s_map{
     int px;
     int py;
     int pm;
+    int error;
 }   t_map;
 
 typedef struct s_mlx{
