@@ -34,7 +34,7 @@ char	*get_intel(int fd, int size, char *buffer)
 	char	*str;
 	int		n;
 
-	str = (char *)malloc(size + 1);
+	str = (char *)malloc((size + 1));
 	if (!str)
 		return (0);
 	str[0] = 0;

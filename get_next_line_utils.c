@@ -12,8 +12,6 @@
 
 #include "so_long.h"
 
-
-
 char	*get_line(char	*buffer)
 {
 	int		i;
@@ -54,7 +52,7 @@ char	*get_rest(char	*buffer)
 		i++;
 	if (buffer[i] == '\n')
 		i++;
-	rest = malloc(ft_strlen(buffer) - i + 1);
+	rest = malloc((ft_strlen(buffer) - i + 1));
 	while (buffer[i])
 	{
 		rest[j] = buffer[i];
